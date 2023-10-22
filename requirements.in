@@ -1,0 +1,4 @@
+# Python 3.10.12
+
+Django==4.2.6
+djangorestframework==3.14.0
