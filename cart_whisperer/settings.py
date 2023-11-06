@@ -45,6 +45,7 @@ SELF_APPS = [
 
 THIRD_PARTY_APPS = [
     "rest_framework",
+    "import_export",
 ]
 
 INSTALLED_APPS = *DJANGO_APPS, *SELF_APPS, *THIRD_PARTY_APPS
@@ -65,7 +66,9 @@ ROOT_URLCONF = "cart_whisperer.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [
+            # BASE_DIR / "templates",
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [

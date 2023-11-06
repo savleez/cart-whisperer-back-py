@@ -11,6 +11,7 @@ class Brand(models.Model):
         blank=False,
         null=False,
         verbose_name="Nombre",
+        unique=True,
     )
 
     def __str__(self):
@@ -92,8 +93,8 @@ class Product(models.Model):
     brand = models.ForeignKey(
         to=Brand,
         on_delete=models.CASCADE,
-        blank=False,
-        null=False,
+        blank=True,
+        null=True,
         verbose_name="Marca",
     )
     variants = models.CharField(

@@ -1,4 +1,8 @@
 from django.contrib import admin
+from django.core.exceptions import ValidationError
+from import_export.admin import ImportExportModelAdmin
+from import_export import resources
+
 
 from api.grocery.models import (
     Brand,
@@ -11,10 +15,10 @@ from api.grocery.models import (
 )
 
 
-@admin.register(Brand)
-class BrandAdmin(admin.ModelAdmin):
-    list_display = ("name",)
-    search_fields = ("name",)
+# @admin.register(Brand)
+# class BrandAdmin(admin.ModelAdmin):
+#     list_display = ("name",)
+#     search_fields = ("name",)
 
 
 @admin.register(Store)
@@ -36,13 +40,13 @@ class ProductCategoryAdmin(admin.ModelAdmin):
     search_fields = ("name",)
 
 
-@admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "brand", "variants")
-    search_fields = ("name", "brand", "variants")
-    list_filter = ("category",)
+# @admin.register(Product)
+# class ProductAdmin(admin.ModelAdmin):
+#     list_display = ("id", "name", "brand", "variants")
+#     search_fields = ("name", "brand", "variants")
+#     list_filter = ("category",)
 
-    list_editable = ("name", "brand", "variants")
+#     list_editable = ("name", "brand", "variants")
 
 
 class ShoppingListItemInline(admin.TabularInline):
@@ -74,3 +78,45 @@ class ShoppingListItemAdmin(admin.ModelAdmin):
 
     list_display = ("product", "shopping_list", "quantity", "price", "get_total_price")
     search_fields = ("product", "shopping_list", "price")
+
+
+class ProductResource(resources.ModelResource):
+    class Meta:
+        model = Product
+
+
+@admin.register(Product)
+class ProductAdmin(ImportExportModelAdmin):
+    resource_class = ProductResource
+
+    list_display = ("id", "name", "brand", "variants")
+    search_fields = ("name", "brand", "variants")
+    list_filter = ("category",)
+
+    list_editable = ("name", "brand", "variants")
+
+
+class BrandResource(resources.ModelResource):
+    class Meta:
+        model = Brand
+
+    def skip_row(self, instance, original, row, import_validation_errors):
+        try:
+            existing_instance = Brand.objects.get(name=instance.name)
+            return True
+        except Brand.DoesNotExist:
+            return False
+
+
+@admin.register(Brand)
+class BrandAdmin(ImportExportModelAdmin):
+    resource_class = BrandResource
+
+    list_display = ("name",)
+    search_fields = ("name",)
+
+    def before_import_row(self, row, **kwargs):
+        brand_name = row.get("brand")
+        if brand_name:
+            brand, created = Brand.objects.get_or_create(name=brand_name)
+            row["brand"] = brand.pk
